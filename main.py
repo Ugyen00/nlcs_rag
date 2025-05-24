@@ -35,7 +35,12 @@ vectorstore_info = VectorStoreInfo(
     vectorstore=docsearch,
 )
 toolkit = VectorStoreToolkit(vectorstore_info=vectorstore_info, llm=llm)
-agent_executor = create_vectorstore_agent(llm=llm, toolkit=toolkit, verbose=True)
+agent_executor = create_vectorstore_agent(
+    llm=llm,
+    toolkit=toolkit,
+    verbose=True,
+    handle_parsing_errors=True
+)
 
 # FastAPI app
 app = FastAPI()
