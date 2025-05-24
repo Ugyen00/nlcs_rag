@@ -57,6 +57,10 @@ async def ask_agent(query: Query):
             answer = agent_executor.run(query.question)
         trace_output = f.getvalue()
 
+    # Fallback if LLM says "I don't know"
+        if "I don't have enough information" in answer or "I'm afraid" in answer:
+            answer = "The agent couldn’t find enough information to answer that question."
+
         return {
             "answer": answer,
             "trace": trace_output
