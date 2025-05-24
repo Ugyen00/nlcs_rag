@@ -8,4 +8,5 @@ langchain-pinecone
 pinecone-client
 tiktoken
 pypdf
+langchain-anthropic
 anthropic
