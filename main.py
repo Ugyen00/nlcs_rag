@@ -7,14 +7,15 @@ from langchain_pinecone import PineconeVectorStore
 from pinecone import Pinecone
 import os
 import io
+import sys
 from contextlib import redirect_stdout
 
-# Environment variables
+# Env vars
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 INDEX_NAME = "nlcs-dataset"
 
-# Initialize Pinecone & LangChain
+# LangChain + Pinecone
 pc = Pinecone(api_key=PINECONE_API_KEY)
 embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
 docsearch = PineconeVectorStore.from_existing_index(index_name=INDEX_NAME, embedding=embeddings)
@@ -27,7 +28,7 @@ vectorstore_info = VectorStoreInfo(
     vectorstore=docsearch,
 )
 toolkit = VectorStoreToolkit(vectorstore_info=vectorstore_info, llm=llm)
-agent_executor = create_vectorstore_agent(llm=llm, toolkit=toolkit, verbose=True)
+agent_executor = create_vectorstore_agent(llm=llm, toolkit=toolkit, verbose=True)  # Must set verbose=True
 
 # FastAPI app
 app = FastAPI()
@@ -38,27 +39,15 @@ class Query(BaseModel):
 @app.post("/ask")
 async def ask_agent(query: Query):
     try:
-        # Capture verbose agent output (Thought, Action, etc.)
+        # Capture stdout during agent run
         f = io.StringIO()
         with redirect_stdout(f):
             answer = agent_executor.run(query.question)
         trace_output = f.getvalue()
 
-        # Also extract top relevant sources (URLs + page)
-        retriever = docsearch.as_retriever(search_kwargs={"k": 3})
-        source_docs = retriever.get_relevant_documents(query.question)
-        sources = [
-            {
-                "url": doc.metadata.get("source", "Unknown"),
-                "page": doc.metadata.get("page", "Unknown")
-            }
-            for doc in source_docs
-        ]
-
         return {
             "answer": answer,
-            "trace": trace_output,
-            "sources": sources
+            "trace": trace_output
         }
     except Exception as e:
         return {"error": str(e)}
