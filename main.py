@@ -24,8 +24,8 @@ docsearch = PineconeVectorStore.from_existing_index(index_name=INDEX_NAME, embed
 # Claude LLM (Anthropic)
 llm = ChatAnthropic(
     anthropic_api_key=ANTHROPIC_API_KEY,
-    # model="claude-3-sonnet-20240229",  # or claude-3-haiku / opus if you have access
-    model="Claude Haiku 3",
+    model="claude-3-sonnet-20240229",  # or claude-3-haiku / opus if you have access
+    # model="Claude Haiku 3",
     temperature=0,
     max_tokens=1024
 )
@@ -56,7 +56,6 @@ app.add_middleware(
     allow_methods=["POST"],
     allow_headers=["*"],
 )
-
 
 class Query(BaseModel):
     question: str
