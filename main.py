@@ -61,7 +61,7 @@ app.add_middleware(
 class Query(BaseModel):
     question: str
 
-@app.post("/ask")
+@app.post("/ask/test")
 async def ask_agent(query: Query):
     try:
         # Capture stdout for trace
@@ -81,7 +81,7 @@ async def ask_agent(query: Query):
     except Exception as e:
         return {"error": str(e)}
 
-@app.post("/ask/test")
+@app.post("/ask")
 async def ask_agent(query: Query):
     try:
         # Basic lowercase input for quick match
