@@ -83,17 +83,27 @@ class Query(BaseModel):
 @app.post("/ask")
 async def ask_agent(query: Query):
     try:
-        # Capture trace logs
+        # Basic lowercase input for quick match
+        user_input = query.question.lower().strip()
+
+        # Handle friendly greetings directly
+        if user_input in ["hi", "hello", "hey", "yo", "greetings", "kuzu", "kuzuzangpo"]:
+            return {
+                "answer": "👋 Hello! How can I help you with land records today?",
+                "trace": "Friendly greeting detected. No agent call made."
+            }
+
+        # Capture agent trace
         f = io.StringIO()
         with redirect_stdout(f):
             try:
                 answer = agent_executor.run(query.question)
             except Exception as parse_error:
-                # Return Claude's raw output if parsing fails
                 answer = str(parse_error)
+
         trace_output = f.getvalue()
 
-        # Fallback if Claude couldn’t answer properly
+        # Handle vague or unstructured replies from Claude
         if (
             "I don't have enough information" in answer
             or "I'm afraid" in answer
@@ -108,4 +118,3 @@ async def ask_agent(query: Query):
 
     except Exception as e:
         return {"error": str(e)}
-
