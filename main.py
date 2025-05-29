@@ -9,6 +9,7 @@ import os
 import io
 from contextlib import redirect_stdout
 from fastapi.middleware.cors import CORSMiddleware
+import random
 
 # Env vars
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
@@ -85,11 +86,21 @@ async def ask_agent(query: Query):
     try:
         # Basic lowercase input for quick match
         user_input = query.question.lower().strip()
+        
+        greeting_variants = [
+            "👋 Hello! How can I help you with land records today?",
+            "Hey there! Need help with a land query? 😊",
+            "Hi! Ask me anything about land ownership, location, or details.",
+            "Namaste! I'm here to assist you with land records. 🙏",
+            "Greetings! What would you like to know about land holdings?",
+            "👋 Hi again! I'm ready to fetch land info for you.",
+            "Hello! Want to know about land types, locations, or owners?"
+        ]
 
         # Handle friendly greetings directly
         if user_input in ["hi", "hello", "hey", "yo", "greetings", "kuzu", "kuzuzangpo"]:
             return {
-                "answer": "👋 Hello! How can I help you with land records today?",
+                "answer": random.choice(greeting_variants),
                 "trace": "Friendly greeting detected. No agent call made."
             }
 
