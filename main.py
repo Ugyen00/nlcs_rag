@@ -61,27 +61,27 @@ app.add_middleware(
 class Query(BaseModel):
     question: str
 
-# @app.post("/ask")
-# async def ask_agent(query: Query):
-#     try:
-#         # Capture stdout for trace
-#         f = io.StringIO()
-#         with redirect_stdout(f):
-#             answer = agent_executor.run(query.question)
-#         trace_output = f.getvalue()
-
-#     # Fallback if LLM says "I don't know"
-#         if "I don't have enough information" in answer or "I'm afraid" in answer:
-#             answer = "The agent couldn’t find enough information to answer that question."
-
-#         return {
-#             "answer": answer,
-#             "trace": trace_output
-#         }
-#     except Exception as e:
-#         return {"error": str(e)}
-
 @app.post("/ask")
+async def ask_agent(query: Query):
+    try:
+        # Capture stdout for trace
+        f = io.StringIO()
+        with redirect_stdout(f):
+            answer = agent_executor.run(query.question)
+        trace_output = f.getvalue()
+
+    # Fallback if LLM says "I don't know"
+        if "I don't have enough information" in answer or "I'm afraid" in answer:
+            answer = "The agent couldn’t find enough information to answer that question."
+
+        return {
+            "answer": answer,
+            "trace": trace_output
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.post("/ask/test")
 async def ask_agent(query: Query):
     try:
         # Basic lowercase input for quick match
