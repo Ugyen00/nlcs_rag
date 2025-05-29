@@ -91,7 +91,7 @@ async def ask_agent(query: Query):
             "👋 Hello! How can I help you with land records today?",
             "Hey there! Need help with a land query? 😊",
             "Hi! Ask me anything about land ownership, location, or details.",
-            "Namaste! I'm here to assist you with land records. 🙏",
+            "Kuzuzangpo! I'm here to assist you with land records. 🙏",
             "Greetings! What would you like to know about land holdings?",
             "👋 Hi again! I'm ready to fetch land info for you.",
             "Hello! Want to know about land types, locations, or owners?"
