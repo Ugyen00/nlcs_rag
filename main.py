@@ -309,9 +309,8 @@ app.add_middleware(
 )
 
 # Google Drive credentials
-SERVICE_ACCOUNT_FILE = json.loads(os.getenv("SERVICE_ACCOUNT_FILE"))
+SERVICE_ACCOUNT_FILE = os.getenv("SERVICE_ACCOUNT_FILE")
 GDRIVE_FOLDER_ID = os.getenv("GDRIVE_FOLDER_ID")
-
 
 # Initialize Google Drive service
 try:
