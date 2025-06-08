@@ -248,7 +248,6 @@ import time
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload, MediaIoBaseDownload
-import json
 
 # Memory for agent conversations - FIXED VERSION
 from langchain.memory import ConversationBufferMemory
@@ -439,8 +438,8 @@ async def ask_agent(query: Query):
                 
                 # Invoke the agent with the enhanced prompt
                 result = agent_executor.invoke({
-                    "input": context_prompt
-                }, handle_parsing_errors=True)  # <-- KEY FIX
+                    "input": enhanced_prompt
+                })
                 
                 # Extract the answer from the result
                 answer = result.get("output", "No response generated")
