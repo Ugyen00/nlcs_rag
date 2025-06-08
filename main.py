@@ -439,8 +439,8 @@ async def ask_agent(query: Query):
                 
                 # Invoke the agent with the enhanced prompt
                 result = agent_executor.invoke({
-                    "input": enhanced_prompt
-                })
+                    "input": context_prompt
+                }, handle_parsing_errors=True)  # <-- KEY FIX
                 
                 # Extract the answer from the result
                 answer = result.get("output", "No response generated")
