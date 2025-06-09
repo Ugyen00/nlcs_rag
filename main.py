@@ -373,6 +373,142 @@ def create_agent_with_context():
 async def root():
     return {"message": "Land Records RAG Agent API with Memory is running!"}
 
+# @app.post("/ask")
+# async def ask_agent(query: Query):
+#     try:
+#         user_input = query.question.lower().strip()
+
+#         # Greeting responses
+#         greeting_variants = [
+#             "👋 Hello! How can I help you with land records today?",
+#             "Hey there! Need help with a land query? 😊",
+#             "Hi! Ask me anything about land ownership, location, or details.",
+#             "Kuzuzangpo! I'm here to assist you with land records. 🙏",
+#             "Greetings! What would you like to know about land holdings?",
+#             "👋 Hi again! I'm ready to fetch land info for you.",
+#             "Hello! Want to know about land types, locations, or owners?"
+#         ]
+
+#         # Handle greetings
+#         if user_input in ["hi", "hello", "hey", "yo", "greetings", "kuzu", "kuzuzangpo"]:
+#             greeting_response = random.choice(greeting_variants)
+#             add_to_conversation(query.session_id, query.question, greeting_response)
+            
+#             return {
+#                 "answer": greeting_response,
+#                 "trace": "Friendly greeting detected. Response stored in conversation history.",
+#                 "session_id": query.session_id,
+#                 "conversation_length": len(get_or_create_conversation(query.session_id))
+#             }
+
+#         # Get conversation context
+#         conversation_context = format_conversation_context(query.session_id)
+        
+#         # Create agent
+#         agent_executor = create_agent_with_context()
+
+#         # Capture stdout for debugging
+#         f = io.StringIO()
+#         with redirect_stdout(f):
+#             try:
+#                 # FIXED: Create enhanced prompt with proper conversation context
+#                 context_prompt = ""
+#                 if conversation_context:
+#                     context_prompt = f"""
+#                     IMPORTANT CONVERSATION CONTEXT (Previous messages in this session):
+#                     {conversation_context}
+
+#                     CURRENT CONTEXT: The above conversation history is from the same session. When the user refers to "she", "he", "it", "this person", "that land", etc., check the conversation history above to understand what they're referring to.
+#                     """
+
+#                     enhanced_prompt = f"""{context_prompt}
+#                     You are a helpful assistant specializing in land records and property management in Bhutan.
+
+#                     Current User Question: {query.question}
+
+#                     Instructions:
+#                     1. FIRST check the conversation context above to understand any references (like "she", "he", "this person", "that land")
+#                     2. If the user is asking a follow-up question, use the conversation history to understand the context
+#                     3. Search the knowledge base thoroughly for relevant information
+#                     4. Provide a comprehensive answer based on available documents and conversation context
+#                     5. If you cannot find specific information, clearly state what information is missing
+
+#                     Always prioritize accuracy and cite relevant information from the documents when possible.
+#                     """
+                
+#                 # Invoke the agent with the enhanced prompt
+#                 result = agent_executor.invoke({
+#                     "input": enhanced_prompt
+#                 })
+                
+#                 # Extract the answer from the result
+#                 answer = result.get("output", "No response generated")
+                
+#             except Exception as parse_error:
+#                 print(f"Agent execution error: {parse_error}")
+#                 # FIXED: Better fallback with conversation context
+#                 try:
+#                     docs = retriever.get_relevant_documents(query.question)
+#                     if docs:
+#                         context = "\n\n".join([doc.page_content for doc in docs[:3]])
+                        
+#                         fallback_prompt = f"""Based on this context about land records:
+                        
+#                         {context}
+
+#                         Conversation History:
+#                         {conversation_context}
+
+#                         Current Question: {query.question}
+
+#                         Please answer the question considering both the document context and the conversation history. If the user is referring to someone or something mentioned earlier, use that context to provide a relevant answer."""
+                                                
+#                         # Direct LLM call as fallback
+#                         llm_response = llm.invoke(fallback_prompt)
+#                         answer = llm_response.content
+                        
+#                     else:
+#                         answer = "I couldn't find relevant information in the knowledge base to answer your question."
+                        
+#                 except Exception as fallback_error:
+#                     answer = f"I encountered an error while processing your question: {str(fallback_error)}"
+
+#         # Add to conversation history
+#         add_to_conversation(query.session_id, query.question, answer)
+
+#         # Get trace output
+#         trace_output = f.getvalue()
+        
+#         # Clean up trace output (remove ANSI codes)
+#         clean_trace = trace_output.replace("\u001b[0m", "").replace("\u001b[1m", "").replace("\u001b[32;1m", "").replace("\u001b[33;1m", "")
+
+#         # Handle common error patterns
+#         if (
+#             "I don't have enough information" in answer
+#             or "I'm afraid" in answer
+#             or "OUTPUT_PARSING_FAILURE" in answer
+#             or not answer.strip()
+#         ):
+#             answer = "I couldn't find enough specific information in the knowledge base to answer that question confidently. Could you please provide more details or rephrase your question?"
+            
+#             # Update conversation with refined answer
+#             if session_conversations.get(query.session_id):
+#                 session_conversations[query.session_id][-1]["content"] = answer
+
+#         return {
+#             "answer": answer,
+#             "trace": clean_trace if clean_trace else "Agent executed successfully with conversation context",
+#             "session_id": query.session_id,
+#             "conversation_length": len(get_or_create_conversation(query.session_id))
+#         }
+
+#     except Exception as e:
+#         print(f"Unexpected error in ask_agent: {e}")
+#         return {
+#             "error": f"An unexpected error occurred: {str(e)}",
+#             "answer": "I'm sorry, I encountered an error while processing your request. Please try again."
+#         }
+
 @app.post("/ask")
 async def ask_agent(query: Query):
     try:
@@ -393,7 +529,6 @@ async def ask_agent(query: Query):
         if user_input in ["hi", "hello", "hey", "yo", "greetings", "kuzu", "kuzuzangpo"]:
             greeting_response = random.choice(greeting_variants)
             add_to_conversation(query.session_id, query.question, greeting_response)
-            
             return {
                 "answer": greeting_response,
                 "trace": "Friendly greeting detected. Response stored in conversation history.",
@@ -403,31 +538,31 @@ async def ask_agent(query: Query):
 
         # Get conversation context
         conversation_context = format_conversation_context(query.session_id)
-        
+
         # Create agent
         agent_executor = create_agent_with_context()
+
+        # Set default prompt to avoid unbound variable error
+        enhanced_prompt = query.question
 
         # Capture stdout for debugging
         f = io.StringIO()
         with redirect_stdout(f):
             try:
-                # FIXED: Create enhanced prompt with proper conversation context
-                context_prompt = ""
                 if conversation_context:
                     context_prompt = f"""
                     IMPORTANT CONVERSATION CONTEXT (Previous messages in this session):
                     {conversation_context}
 
-                    CURRENT CONTEXT: The above conversation history is from the same session. When the user refers to "she", "he", "it", "this person", "that land", etc., check the conversation history above to understand what they're referring to.
+                    CURRENT CONTEXT: The above conversation history is from the same session. When the user refers to \"she\", \"he\", \"it\", \"this person\", \"that land\", etc., check the conversation history above to understand what they're referring to.
                     """
-
                     enhanced_prompt = f"""{context_prompt}
                     You are a helpful assistant specializing in land records and property management in Bhutan.
 
                     Current User Question: {query.question}
 
                     Instructions:
-                    1. FIRST check the conversation context above to understand any references (like "she", "he", "this person", "that land")
+                    1. FIRST check the conversation context above to understand any references (like \"she\", \"he\", \"this person\", \"that land\")
                     2. If the user is asking a follow-up question, use the conversation history to understand the context
                     3. Search the knowledge base thoroughly for relevant information
                     4. Provide a comprehensive answer based on available documents and conversation context
@@ -435,25 +570,19 @@ async def ask_agent(query: Query):
 
                     Always prioritize accuracy and cite relevant information from the documents when possible.
                     """
-                
-                # Invoke the agent with the enhanced prompt
-                result = agent_executor.invoke({
-                    "input": enhanced_prompt
-                })
-                
-                # Extract the answer from the result
+
+                # Invoke the agent with the prompt
+                result = agent_executor.invoke({"input": enhanced_prompt})
                 answer = result.get("output", "No response generated")
-                
+
             except Exception as parse_error:
                 print(f"Agent execution error: {parse_error}")
-                # FIXED: Better fallback with conversation context
                 try:
                     docs = retriever.get_relevant_documents(query.question)
                     if docs:
                         context = "\n\n".join([doc.page_content for doc in docs[:3]])
-                        
                         fallback_prompt = f"""Based on this context about land records:
-                        
+
                         {context}
 
                         Conversation History:
@@ -462,14 +591,10 @@ async def ask_agent(query: Query):
                         Current Question: {query.question}
 
                         Please answer the question considering both the document context and the conversation history. If the user is referring to someone or something mentioned earlier, use that context to provide a relevant answer."""
-                                                
-                        # Direct LLM call as fallback
                         llm_response = llm.invoke(fallback_prompt)
                         answer = llm_response.content
-                        
                     else:
                         answer = "I couldn't find relevant information in the knowledge base to answer your question."
-                        
                 except Exception as fallback_error:
                     answer = f"I encountered an error while processing your question: {str(fallback_error)}"
 
@@ -478,11 +603,9 @@ async def ask_agent(query: Query):
 
         # Get trace output
         trace_output = f.getvalue()
-        
-        # Clean up trace output (remove ANSI codes)
         clean_trace = trace_output.replace("\u001b[0m", "").replace("\u001b[1m", "").replace("\u001b[32;1m", "").replace("\u001b[33;1m", "")
 
-        # Handle common error patterns
+        # Handle weak answers
         if (
             "I don't have enough information" in answer
             or "I'm afraid" in answer
@@ -490,8 +613,6 @@ async def ask_agent(query: Query):
             or not answer.strip()
         ):
             answer = "I couldn't find enough specific information in the knowledge base to answer that question confidently. Could you please provide more details or rephrase your question?"
-            
-            # Update conversation with refined answer
             if session_conversations.get(query.session_id):
                 session_conversations[query.session_id][-1]["content"] = answer
 
@@ -508,6 +629,7 @@ async def ask_agent(query: Query):
             "error": f"An unexpected error occurred: {str(e)}",
             "answer": "I'm sorry, I encountered an error while processing your request. Please try again."
         }
+
 
 @app.post("/clear_memory")
 async def clear_session_memory(session_id: str):
