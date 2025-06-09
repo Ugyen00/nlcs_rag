@@ -185,24 +185,23 @@ async def ask_agent(query: Query):
             try:
                 if conversation_context:
                     context_prompt = f"""
-                    IMPORTANT CONVERSATION CONTEXT (Previous messages in this session):
+                    💬 Previous Conversation:
                     {conversation_context}
 
-                    CURRENT CONTEXT: The above conversation history is from the same session. When the user refers to \"she\", \"he\", \"it\", \"this person\", \"that land\", etc., check the conversation history above to understand what they're referring to.
+                    This history may help you understand who or what the user is referring to (e.g., “she,” “this land,” “Samdrup,” etc.).
                     """
                     enhanced_prompt = f"""{context_prompt}
-                    You are a helpful assistant specializing in land records and property management in Bhutan.
+                    You are a helpful and knowledgeable assistant who supports users in understanding land records and property information in Bhutan, you sould also give answer if user gives name and place only.
 
-                    Current User Question: {query.question}
+                    🧠 Current User Question: {query.question}
 
-                    Instructions:
-                    1. FIRST check the conversation context above to understand any references (like \"she\", \"he\", \"this person\", \"that land\")
-                    2. If the user is asking a follow-up question, use the conversation history to understand the context
-                    3. Search the knowledge base thoroughly for relevant information
-                    4. Provide a comprehensive answer based on available documents and conversation context
-                    5. If you cannot find specific information, clearly state what information is missing
+                    Please:
+                    1. Review the conversation history to make sense of any references (like names, places, or follow-up questions).
+                    2. Even if the user just says a name or location, try to infer what they might mean based on previous messages.
+                    3. Search the knowledge base for the most relevant and accurate information.
+                    4. If you can't find something, let the user know what’s missing or guide them to clarify.
 
-                    Always prioritize accuracy and cite relevant information from the documents when possible.
+                    Be informative, friendly, and cite relevant details when possible.
                     """
 
                 # Invoke the agent with the prompt
